@@ -1,0 +1,181 @@
+import discord
+import asyncio
+from discord.ext import commands
+import time
+import youtube_dl
+
+
+bot = commands.Bot(command_prefix='s!')
+
+@bot.event
+async def on_ready():
+    print('Schicht angetreten!')
+
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    #print(m_id)
+    #print(user.name)
+    global test
+    test = user.name
+    #print(reaction.message.id)
+    if reaction.message.id == m_id:
+        global emoji4
+        emoji4 = 'nope'
+        global emoji3
+        emoji3 = 'nope'
+        global emoji1
+        emoji1 = '✅'
+        global emoji2
+        emoji2 = '❌'
+        #print(reaction.emoji)
+        if user.name == 'SilverSquadBot':
+            return
+        if reaction.emoji == emoji2:
+            await letzte.edit(content=(str(letzte.content) + ' ' + str(user.name) + ','))
+            emoji3 = 'joa'
+            return
+        if reaction.emoji == emoji1:
+            await vorletzte.edit(content=(str(vorletzte.content) + ' ' + str(user.name) + ','))
+            emoji4 = 'joa'
+            return
+        await reaction.message.remove_reaction(reaction, user)
+    #print(reaction.emoji)
+    #print(str(emoji3)+str(emoji4))
+    #print(emoji1)
+    #print(emoji2)
+
+@bot.command()
+async def leiter(member, name):
+    await member.channel.purge(limit=1)
+    #print(member)
+    if member.author.name == 'Rasierer007':
+        #print(member)
+        print(name)
+        #print(member.author)
+        ad = discord.utils.get(member.guild.members, name=(name))
+        print(ad)
+        role = discord.utils.get(member.guild.roles, name='Leiter')
+        await ad.add_roles(role)
+
+@bot.command()
+async def leiterweg(member, name):
+    await member.channel.purge(limit=1)
+    if member.author.name == 'Rasierer007':
+        #print(member)
+        print(name)
+        #print(member.author)
+        ad = discord.utils.get(member.guild.members, name=(name))
+        print(ad)
+        role = discord.utils.get(member.guild.roles, name='Leiter')
+        await ad.remove_roles(role)
+
+
+@bot.event
+async def on_member_update(before, after):
+    #print(after)
+    #print(before)
+    if before.id == 396796633330876426:
+        #print('test1')
+        for i in after.roles:
+            #print(i)
+            if str(i) == 'Leiter':
+                #print('test2')
+                role1 = discord.utils.get(before.guild.roles, name='Leiter')
+                await before.remove_roles(role1)
+
+@bot.command()
+async def clearall(message):
+    #print(ctx.message.id)
+    Berechtigt = False
+    last_id = message.channel.last_message_id
+    id = message.message.id
+    #print(message.id)
+    if message.channel.id == 692477739369889813:
+        if id == last_id:
+            return
+    for role in message.author.roles:
+        if role.id == 691618562590375966:
+            Berechtigt = True
+    if Berechtigt == True:
+        await message.channel.purge(limit=10000)
+        await message.channel.send(content='```Alle Nachrichten wurden gelöscht!```', delete_after=4)
+        #print('g!clearall ausgeführt von {}.'.format(message.author))
+    else:
+        #print(message.channel.last_message_id)
+        if message.channel.last_message_id == id:
+            await message.channel.purge(limit=1)
+        await message.channel.send(content='```Du bist dazu nicht berechtigt!```', delete_after=4)
+        print('{} wollte g!clearall ausführen.'.format(message.author))
+
+
+@bot.command()
+async def addTermin(message):
+    print(message.message.content.split())
+    info = (message.message.content.split())
+    id = message.channel.last_message_id
+    print(info[1])
+
+
+    embed = discord.Embed(
+        title = 'Neuer Termin!',
+        description = (info[2]),
+        colour = discord.Colour.light_grey()
+    )
+
+    if message.author.name == 'Illuminator':
+        url = 'https://cdn.discordapp.com/attachments/572778340763566082/693223546540785734/Alex_PB.png'
+        embed.set_thumbnail(url=(url))
+    if message.author.name == 'Rasierer007':
+        url = 'https://cdn.discordapp.com/attachments/572778340763566082/693243284067450971/Lukas_PB.png'
+        embed.set_thumbnail(url=(url))
+    if message.author.name == 'SavoxDesigns':
+        url = 'https://cdn.discordapp.com/attachments/572778340763566082/693276978752520192/Marlon_PB.png'
+        embed.set_thumbnail(url=(url))
+    if message.author.name == 'Venox04':
+        pass
+    if message.author.name == 'Sandymac':
+        pass
+
+
+    #embed.set_footer(text='test footer')
+    #embed.set_image(url='https://tse1.mm.bing.net/th?id=OIP.eF-zlPuN8FCBi__5VtAV2QHaFo&pid=Api')
+    embed.set_author(name=(message.author.name), icon_url=(message.author.avatar_url))
+    if info[2] == 'Taktikbesprechung':
+        embed.add_field(name='Map', value=(info[3]))
+        uhr = (info[4])
+    else:
+        uhr = (info[3])
+    embed.add_field(name='Datum', value=(info[1]), inline=True)
+    embed.add_field(name='Uhrzeit', value=(uhr) + ' Uhr', inline=True)
+    #embed.add_field(name='Absagen ❌', value='test', inline=False)
+    #embed.add_field(name='Zusagen ✅', value='test', inline=True)
+
+
+    if message.message.id == id:
+        await message.channel.purge(limit=1)
+    await message.channel.send(embed=embed)
+    global m_id
+    m_id = message.message.channel.last_message.id
+    global ersatz
+    ersatz = message.channel.last_message
+    await ersatz.add_reaction('✅')
+    await ersatz.add_reaction('❌')
+    await message.channel.send('**Absagen:**')
+    global letzte
+    letzte = message.channel.last_message
+    await message.channel.send('**Zusagen:**')
+    global vorletzte
+    vorletzte = message.channel.last_message
+    await ersatz.pin()
+
+@bot.command()
+async def play(message):
+    #print(message.message.author_voicecha)
+    channel = message.message.author.voice.voice_channel
+    await bot.join_voice_channel(channel)
+
+list= ['abc']
+print((list)+(list))
+
+bot.run('NjkyODczMDkyNDg1MDg3Mjg1.Xn04Qg.wS_sUsR1sGI7VVsdYtV6XByirqY')
